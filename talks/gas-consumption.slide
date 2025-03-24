@@ -1,0 +1,49 @@
+
+# Stylus Gas Challenge
+
+@bayge
+
+## Introduction to Bucharest Hashing
+
+Bucharest Hashing is a Proof of Work problem where solvers word to use a keyed hash
+function to find the first instance of a king being checkmated in a board.
+
+Pieces have their placement derived from a nonce and a hash function, and to the King,
+every piece is a opponent. Many Kings can be placed at once.
+
+A piece is considered to be in checkmate if every move it makes places it in check. It
+can't move into pieces.
+
+## How this game is played
+
+This game is played on a curve. The most gas efficient solution is entitled to a token
+created per second, so long as they remain the optimal solution. Solutions
+can only be submitted if a Github repository is linked with the source code. The source
+code must be public.
+
+When a solution is submitted, the submitter must identify which category they belong to.
+The teams and projects will be colour coded by their category. When users register to the
+Superposition faucet, they must explain their preferred category.
+
+```mermaid
+xychart-beta
+  title "Submission revenue per second"
+  x-axis ["Start of contest", "End of contest"]
+  y-axis "Revenue earned" 0 --> 100
+  line [20, 80]
+```
+
+This game rewards early ingenuity. But it opens solutions up to vulnerability, with other
+projects copying elements of their solution. Just like free market capitalism.
+
+## How can I improve my solution?
+
+Some ideas:
+
+1. Look at/reproduce the currently chosen solution for Grin/Aeternity
+
+2. Investigate optimisations for uploading WASM code
+
+3. Implement edge trimming
+
+Make sure to figure out a test harness to profile your gas consumption early.
