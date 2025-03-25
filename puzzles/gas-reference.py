@@ -9,8 +9,6 @@ mindful of this if comparing code to this implementation.
 import hashlib, math, unittest
 from hypothesis import given, strategies as st
 
-from copy import deepcopy
-
 PIECE_PAWN = 1
 PIECE_KNIGHT = 2
 PIECE_BISHOP = 3
@@ -155,19 +153,7 @@ class TestBucharestHashing(unittest.TestCase):
 		solution = b.solve(starting_hash, 0)
 		assert solution is not None
 		lowest_expected, highest_expected = solution
-		c = deepcopy(b)
-		lowest_test, highest_test = c.solve(starting_hash, lowest_expected)
-		if lowest_expected != lowest_test:
-			print(f"Lowest inconsistent, expected: {lowest_expected}, test: {lowest_test}")
-			print("BEFORE")
-			b.print_board()
-			print("AFTER")
-			c.print_board()
-		if highest_expected != highest_test:
-			print(f"Highest inconsistent, expected: {highest_expected}, test: {highest_test}")
-			b.print_board()
-			print("AFTER")
-			c.print_board()
+		lowest_test, highest_test = b.solve(starting_hash, lowest_expected)
 		assert lowest_expected is lowest_test, f"lowest expected ({lowest_expected}) != lowest test ({lowest_test})"
 		assert highest_expected is highest_test, f"highest expected ({highest_expected}) != highest_test ({highest_test})"
 
