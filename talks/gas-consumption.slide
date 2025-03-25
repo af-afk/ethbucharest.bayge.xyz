@@ -6,18 +6,18 @@
 ## Introduction to Bucharest Hashing
 
 Bucharest Hashing is a Proof of Work problem where solvers word to use a keyed hash
-function to find the first instance of a king being checked on a board.
+function to find the first instance of a king being checked on a chess board.
 
 Pieces have their placement derived from a nonce and a hash function, and to the King,
 every piece is a opponent. Many Kings can be placed at once, but only the last King can
-be considered for checkmate.
+be considered for check.
 
 ## How this game is played
 
 This game is played on a curve. The most gas efficient solution is entitled to a token
 created per second, so long as they remain the optimal solution. Solutions
 can only be submitted if a Github repository is linked with the source code. The source
-code must be public.
+code must be public. Winners are chosen based on their accumulated points.
 
 When a solution is submitted, the submitter must identify which category they belong to.
 The teams and projects will be colour coded by their category. When users register to the
@@ -33,6 +33,14 @@ xychart-beta
 
 This game rewards early ingenuity. But it opens solutions up to vulnerability, with other
 projects copying elements of their solution.
+
+## Submitting solutions
+
+Submitting solutions is as simple as calling the verification function that emulates the
+submission proof. This call triggers a call to the calling function, and the function then
+benchmarks their performance. If they outperform the previously tracked solution,
+then they're tracked as in the lead, and entitled to rewards so far! The moment a new
+leader is in place, a Transfer event is emitted to update token balances.
 
 ## How can I improve my solution?
 
