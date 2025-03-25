@@ -6,13 +6,11 @@
 ## Introduction to Bucharest Hashing
 
 Bucharest Hashing is a Proof of Work problem where solvers word to use a keyed hash
-function to find the first instance of a king being checkmated in a board.
+function to find the first instance of a king being checked on a board.
 
 Pieces have their placement derived from a nonce and a hash function, and to the King,
-every piece is a opponent. Many Kings can be placed at once.
-
-A piece is considered to be in checkmate if every move it makes places it in check. It
-can't move into pieces.
+every piece is a opponent. Many Kings can be placed at once, but only the last King can
+be considered for checkmate.
 
 ## How this game is played
 
@@ -34,16 +32,14 @@ xychart-beta
 ```
 
 This game rewards early ingenuity. But it opens solutions up to vulnerability, with other
-projects copying elements of their solution. Just like free market capitalism.
+projects copying elements of their solution.
 
 ## How can I improve my solution?
 
 Some ideas:
 
-1. Look at/reproduce the currently chosen solution for Grin/Aeternity
+1. Play around with the representation of the board
 
-2. Investigate optimisations for uploading WASM code
+2. Play around with optimising the checker inside your code
 
-3. Implement edge trimming
-
-Make sure to figure out a test harness to profile your gas consumption early.
+3. Play around with precomputing some tables to simplify the process
