@@ -98,7 +98,6 @@ class BucharestHashing:
 				if piece == 0: continue
 				if piece in (PIECE_CASTLE, PIECE_QUEEN):
 					threats.append(n)
-				break  # stop after first non-empty
 
 		# Bishop/Queen
 		for dx, dy in [(-1,-1), (-1,1), (1,-1), (1,1)]:
@@ -112,7 +111,7 @@ class BucharestHashing:
 				if piece == 0: continue
 				if piece in (PIECE_BISHOP, PIECE_QUEEN):
 					threats.append(n)
-				break  # same, stop on first hit
+				break
 
 		# King
 		for dx in [-1, 0, 1]:
