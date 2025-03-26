@@ -23,37 +23,26 @@ def hash(x, y):
 	Simulate a keyed hashing function using hashlib.
 	"""
 	d = hashlib.sha256()
-	d.update(x + bytes(y))
+	d.update(x + y.to_bytes(8, 'big'))
 	return d.digest()
 
 class BucharestHashing:
 	BOARD_SIZE = 0
 	ROW_SIZE = 0
 	MAX_TRIES = 0
+	CHECKMATERS = 1
 	board = []
-	last_king_pos = None
 
-	def __init__(self, board_size = DEFAULT_BOARD_SIZE, max_tries = 10_000):
+	def __init__(
+		self,
+		board_size = DEFAULT_BOARD_SIZE,
+		max_tries = 10_000,
+		checkmaters = 1
+	):
 		self.BOARD_SIZE = board_size
 		self.ROW_SIZE = math.isqrt(self.BOARD_SIZE)
 		self.MAX_TRIES = max_tries
 		self.board = []
-
-	def print_board(self):
-		for i in range(0, self.BOARD_SIZE):
-			n = ""
-			p = self.board[i][0]
-			if p == PIECE_PAWN: n = "♟"
-			if p == PIECE_KNIGHT: n = "♞"
-			if p == PIECE_BISHOP: n = "♝"
-			if p == PIECE_CASTLE: n = "♜"
-			if p == PIECE_QUEEN: n = "♛"
-			if p == PIECE_KING: n = "♚"
-			if n == "": n = "□"
-			if i == self.last_king_pos and p == PIECE_KING: n = "♔"
-			print(f"| {n} ", end="")
-			if (i + 1) % self.ROW_SIZE == 0: print("")
-		print("")
 
 	def pos_to_xy(self, pos):
 		return pos % self.ROW_SIZE, pos // self.ROW_SIZE
@@ -90,10 +79,10 @@ class BucharestHashing:
 			while True:
 				x += dx
 				y += dy
-				if not self.in_bounds(x, y): break
+				if not self.in_bounds(x, y):
+					break
 				pos = self.xy_to_pos(x, y)
 				piece, n = self.board[pos]
-				if piece == 0: continue
 				if piece in (PIECE_CASTLE, PIECE_QUEEN):
 					threats.append(n)
 
@@ -122,30 +111,42 @@ class BucharestHashing:
 				if piece == PIECE_KING and pos != king_pos:
 					threats.append(n)
 
-		return threats
+		if len(threats) >= self.CHECKMATERS:
+			return threats
+		else:
+			return []
 
 	def solve(self, starting_hash, start):
-		self.last_king_pos, last_king_nonce = None, None
-		self.board = [[0, 0]] * self.BOARD_SIZE
+		last_king_pos, last_king_nonce = None, None
+		self.board = [[0, 0] for _ in range(self.BOARD_SIZE)]
 		for i in range(start, self.MAX_TRIES):
 			e = int.from_bytes(hash(starting_hash, i))
 			p = e % (PIECE_KING + 1)
 			l = (e >> 32) % self.BOARD_SIZE
 			self.board[l] = [p, i]
 			if p == PIECE_KING:
-				self.last_king_pos = l
+				last_king_pos = l
 				last_king_nonce = i
-			if last_king_nonce == None:
+			if last_king_nonce is None:
 				continue
-			threats = self.in_check_threats(self.last_king_pos)
+			threats = self.in_check_threats(last_king_pos)
 			if len(threats) > 0:
 				threats.append(last_king_nonce)
 				return min(threats), i
 		return None
 
 class TestBucharestHashing(unittest.TestCase):
-	@given(starting_hash=st.binary(min_size=32, max_size=32))
-	def test_prev_checks_same(self, starting_hash):
+	@given(
+		board_size=st.integers(min_value=1, max_value=0x1FFFFF),
+		starting_hash=st.binary(min_size=32, max_size=32),
+		checkmaters=st.integers(min_value=1)
+	)
+	def test_prev_checks_same(
+		self,
+		board_size,
+		checkmaters,
+		starting_hash
+	):
 		"""
 		We try to hash, then test if the proof will produce the same results.
 		"""
@@ -154,8 +155,8 @@ class TestBucharestHashing(unittest.TestCase):
 		assert solution is not None
 		lowest_expected, highest_expected = solution
 		lowest_test, highest_test = b.solve(starting_hash, lowest_expected)
-		assert lowest_expected is lowest_test, f"lowest expected ({lowest_expected}) != lowest test ({lowest_test})"
-		assert highest_expected is highest_test, f"highest expected ({highest_expected}) != highest_test ({highest_test})"
+		assert lowest_expected == lowest_test, f"lowest expected ({lowest_expected}) != lowest test ({lowest_test})"
+		assert highest_expected == highest_test, f"highest expected ({highest_expected}) != highest_test ({highest_test})"
 
 if __name__ == "__main__":
 	unittest.main()
