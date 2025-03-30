@@ -14,6 +14,6 @@ impl StorageProver {
     }
 
     pub fn prove(&self, hash: abi::Bytes, from: u32) -> R<(u32, u32)> {
-        Ok(crate::prover::solve(0x1FFFF, 1, 100000, &hash, from).unwrap())
+        Ok(crate::prover::solve(0x1FFFFFFF, 1, 100000, &hash, from).unwrap())
     }
 }

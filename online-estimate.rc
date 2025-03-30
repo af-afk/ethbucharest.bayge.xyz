@@ -6,7 +6,7 @@ fn median {
 }
 
 fn test {
-	cast estimate --rpc-url https://testnet-rpc.superposition.so 0x6154bbd295baa83200ed837c81189b08b335eb45 'prove(bytes,uint32)' `{cast calldata 'hello(uint256)' $1} 0
+	cast estimate --rpc-url https://testnet-rpc.superposition.so 0x5dd8798537815ccc93b142d3f0dd1b09eb968e88 'prove(bytes,uint32)' `{cast calldata 'hello(uint256)' $1} 0
 }
 
 seq 100 | parallel -j100 test | median
