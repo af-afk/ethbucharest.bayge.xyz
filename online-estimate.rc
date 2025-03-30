@@ -1,0 +1,12 @@
+#!/usr/bin/env rc
+
+fn median {
+	sort -n \
+		| awk '{a[NR]=$1} END{mid=NR/2; print (NR%2 ? a[int(mid+1)] : (a[mid]+a[mid+1])/2)}'
+}
+
+fn test {
+	cast estimate --rpc-url https://testnet-rpc.superposition.so 0x6154bbd295baa83200ed837c81189b08b335eb45 'prove(bytes,uint32)' `{cast calldata 'hello(uint256)' $1} 0
+}
+
+seq 100 | parallel -j100 test | median
