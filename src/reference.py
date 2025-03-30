@@ -7,7 +7,7 @@ mindful of this if comparing code to this implementation.
 """
 
 import hashlib, math, unittest
-from hypothesis import given, strategies as st
+from hypothesis import given, strategies as st, settings
 
 PIECE_PAWN = 1
 PIECE_KNIGHT = 2
@@ -30,14 +30,14 @@ class BucharestHashing:
 	BOARD_SIZE = 0
 	ROW_SIZE = 0
 	MAX_TRIES = 0
-	CHECKMATERS = 1
+	CHECKS_NEEDED = 1
 	board = []
 
 	def __init__(
 		self,
 		board_size = DEFAULT_BOARD_SIZE,
 		max_tries = 10_000,
-		checkmaters = 1
+		checks_needed = 1
 	):
 		self.BOARD_SIZE = board_size
 		self.ROW_SIZE = math.isqrt(self.BOARD_SIZE)
@@ -98,7 +98,6 @@ class BucharestHashing:
 				if piece == 0: continue
 				if piece in (PIECE_BISHOP, PIECE_QUEEN):
 					threats.append(n)
-				break
 
 		# King
 		for dx in [-1, 0, 1]:
@@ -111,10 +110,7 @@ class BucharestHashing:
 				if piece == PIECE_KING and pos != king_pos:
 					threats.append(n)
 
-		if len(threats) >= self.CHECKMATERS:
-			return threats
-		else:
-			return []
+		return threats
 
 	def solve(self, starting_hash, start):
 		last_king_pos, last_king_nonce = None, None
@@ -130,21 +126,26 @@ class BucharestHashing:
 			if last_king_nonce is None:
 				continue
 			threats = self.in_check_threats(last_king_pos)
-			if len(threats) > 0:
+			if len(threats) >= self.CHECKS_NEEDED:
 				threats.append(last_king_nonce)
 				return min(threats), i
 		return None
 
 class TestBucharestHashing(unittest.TestCase):
+	@settings(
+		max_examples=10000,
+		deadline=None,
+		derandomize=False
+	)
 	@given(
+		checks_needed=st.integers(min_value=1,max_value=4),
 		board_size=st.integers(min_value=1, max_value=0x1FFFFF),
 		starting_hash=st.binary(min_size=32, max_size=32),
-		checkmaters=st.integers(min_value=1)
 	)
 	def test_prev_checks_same(
 		self,
+		checks_needed,
 		board_size,
-		checkmaters,
 		starting_hash
 	):
 		"""
@@ -159,4 +160,7 @@ class TestBucharestHashing(unittest.TestCase):
 		assert highest_expected == highest_test, f"highest expected ({highest_expected}) != highest_test ({highest_test})"
 
 if __name__ == "__main__":
-	unittest.main()
+	#unittest.main()
+	b = BucharestHashing()
+	print(b.solve(b"01", 0))
+

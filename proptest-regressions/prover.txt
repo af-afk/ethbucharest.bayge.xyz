@@ -1,0 +1,10 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc df11dbce10d80c7e40f83dee5ef7399ffc735b6d0e06c902870bfa5687d979a4 # shrinks to checks_needed = 1, board_size = 10, starting_hash = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], start = 0
+cc 462f7f240425ade0b7598f2f2f621fdc2de4bf10ed55dfd288fbd08e32748ff3 # shrinks to checks_needed = 2, board_size = 298, starting_hash = [20, 27, 74, 130, 31, 64, 135, 129, 111, 44, 127, 23, 112, 194, 27, 25, 17, 9, 51, 134, 63, 102, 84, 19, 53, 73, 55, 75, 4, 221, 40, 64, 161, 45, 123, 53, 50, 228, 44, 236, 59, 106, 75, 25, 20, 148, 38, 244, 71, 43, 27, 52, 237, 10, 40, 145, 52, 163, 172, 15, 158, 96, 178, 21], start = 0
+cc 088f3dff721f108ab3e17a2465a13de29668a2aafd721b15afea7195dd196796 # shrinks to checks_needed = 3, starting_hash = [52, 29, 131, 99, 29, 90, 44, 49, 169, 47, 34, 94, 99, 9, 60, 131, 120, 8, 103, 68, 152, 50, 45, 24, 174, 209, 187, 79, 131, 4, 65, 53, 147, 173, 29, 184, 0, 34, 130, 105, 84, 8, 17, 43, 125, 86, 136, 74, 76, 124, 11, 197, 63, 51, 87, 60, 52, 8, 168, 55, 65, 78, 169, 22], start = 0
+cc 9fa9b233e88ec03b525b734336d6d50b03c092e7862d55ff3c672417ec33e132 # shrinks to checks_needed = 1, starting_hash = [136, 18, 4, 221, 29, 234, 54, 22, 106, 195, 217, 39, 84, 206, 140, 186, 179, 120, 72, 218, 227, 68, 234, 20, 198, 87, 74, 74, 207, 246, 226, 133, 81, 134, 2, 8, 13, 217, 30, 12, 14, 23, 239, 200, 140, 56, 201, 19, 32, 201, 50, 209, 40, 193, 233, 74, 251, 67, 43, 5, 142, 92, 149, 185], start = 0
