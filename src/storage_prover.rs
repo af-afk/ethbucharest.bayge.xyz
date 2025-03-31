@@ -15,15 +15,17 @@ pub struct StorageProver {
     /// Admin that has the right to provide contract invocations to this function.
     pub admin: StorageAddress,
 
+    /// Token to use to distribute points.
+    pub token_addr: StorageAddress,
+
     /// The top scorer of this function, in the form of the address, and the
     /// gas consumed. Appended to, but occassionally scratched from the
     /// record by the administrator if someone misleads the address of their
     /// repo when they submit.
     pub top_scorers: StorageVec<StorageU256>,
 
-    /// Amounts of seconds of tenancy the leading solution has had, which is converted into
-    /// a token that's minted and sent their way on change.
-    pub tenancy_secs: StorageU64,
+    /// When the current winner begun their tenancy of the top position.
+    pub tenancy_start_ts: StorageU64,
 }
 
 pub fn unpack_result_word(x: U256) -> (u64, Address) {

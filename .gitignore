@@ -1,3 +1,5 @@
 cache/
 out/
 target/
+contract-prover.wasm
+factory-prover.wasm

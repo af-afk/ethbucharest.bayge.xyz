@@ -1,5 +1,5 @@
 
-# Stylus Gas Challenge
+# Stylus Gas Redux
 
 @bayge
 
@@ -36,11 +36,11 @@ projects copying elements of their solution.
 
 ## Submitting solutions
 
-Submitting solutions is as simple as calling the verification function that emulates the
-submission proof. This call triggers a call to the calling function, and the function then
-benchmarks their performance. If they outperform the previously tracked solution,
-then they're tracked as in the lead, and entitled to rewards so far! The moment a new
-leader is in place, a Transfer event is emitted to update token balances.
+Submitting solutions is as simple as calling a verify function. This is tracked by a
+script which will simulate your contract, and pick the median solution in terms of
+performance. If they outperform the previously tracked solution, then they're tracked as
+in the lead, and entitled to rewards until someone submits a better solution! The moment a
+new leader is in place, a Transfer event is emitted to update token balances.
 
 ## How can I improve my solution?
 
@@ -52,6 +52,8 @@ Some ideas:
 
 3. Play around with precomputing some tables to simplify the process
 
+4. Play around with changing the collection type for the board
+
 ## What's next?
 
 1. Get some testnet SPN on Superposition Testnet (where this game is played)
@@ -59,3 +61,6 @@ Some ideas:
 2. Use the Wizard on Stylus to get started quickly!
 
 QR code here
+
+## Prizes
+

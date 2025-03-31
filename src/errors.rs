@@ -18,6 +18,9 @@ pub enum Err {
 
     /// The results of the local prove against the other contract's prove are inconsistent.
     ProveInconsistent,
+
+    /// The deployment of a proxy failed.
+    DeployFailed,
 }
 
 impl From<Err> for u8 {

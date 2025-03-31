@@ -16,6 +16,7 @@ library StorageSlot {
 
 contract MetaphoricProxy {
     constructor() {
+        StorageSlot.getAddressSlot(SLOT_IMPL).value = 0x9999999999999999999999999999999999999999;
         bytes memory initcode;
         assembly {
             let size := codesize()
@@ -30,7 +31,7 @@ contract MetaphoricProxy {
 
     fallback() external {
         (bool rc, bytes memory rd) =
-            StorageSlot.getAddressSlot(SLOT_IMPL).value.delegatecall(msg.data);
+            0x9999999999999999999999999999999999999999.delegatecall(msg.data);
         if (rd.length > 0 && !rc) {
             assembly {
                 revert(add(rd, 0x20), mload(rd))
