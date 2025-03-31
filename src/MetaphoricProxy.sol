@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import "forge-std/console.sol";
+
 bytes32 constant SLOT_IMPL = bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1);
 
 library StorageSlot {
@@ -14,18 +16,17 @@ library StorageSlot {
     }
 }
 
+interface MetaphoricProxyCallback {
+    function setup(address) external;
+}
+
 contract MetaphoricProxy {
-    constructor() {
+    constructor(address _admin) {
         StorageSlot.getAddressSlot(SLOT_IMPL).value = 0x9999999999999999999999999999999999999999;
-        bytes memory initcode;
-        assembly {
-            let size := codesize()
-            initcode := mload(0x40)
-            mstore(0x40, add(initcode, and(add(size, 0x1f), not(0x1f))))
-            mstore(initcode, size)
-            codecopy(add(initcode, 0x20), 0, size)
-        }
-        (bool rc,) = msg.sender.delegatecall(initcode);
+        (bool rc,) = msg.sender.delegatecall(abi.encodeWithSelector(
+            MetaphoricProxyCallback.setup.selector,
+            _admin
+        ));
         require(rc);
     }
 

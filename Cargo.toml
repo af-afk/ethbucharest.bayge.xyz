@@ -26,7 +26,7 @@ stylus-sdk = { version = "0.8.3", features = ["stylus-test"] }
 
 [features]
 debug = ["stylus-sdk/debug"]
-factory-prover = ["stylus-sdk/reentrant"]
+factory-prover = []
 contract-prover = []
 contract-verifier  = []
 

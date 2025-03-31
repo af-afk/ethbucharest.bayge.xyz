@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 interface IEvents {
+    event Deployed(address indexed deployment);
+
     event Registered(address indexed addr, address indexed recipient);
 
     event Checked(

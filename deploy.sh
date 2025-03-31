@@ -28,10 +28,14 @@ export \
 	RAW_PRIVATE_KEY=$SPN_SUPERPOSITION_KEY \
 	ETH_RPC_URL=$SPN_SUPERPOSITION_URL
 
-cast send \
+addr="0x$(cast send \
 	--rpc-url "$SPN_SUPERPOSITION_URL" \
 	--private-key "$SPN_SUPERPOSITION_KEY" \
+	--json \
 	"$SPN_PROVER_FACTORY" \
 		'deploy(address,address)' \
 		"$SPN_PROVER_IMPL" \
-		"$SPN_PROVER_ADMIN"
+		"$SPN_PROVER_ADMIN" \
+			| jq -r '.logs.[] | select(.topics[0] == "0xf40fcec21964ffb566044d083b4073f29f7f7929110ea19e1b3ebe375d89055e") | .topics[1][-40:]')"
+
+echo $addr

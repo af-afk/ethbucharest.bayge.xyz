@@ -24,7 +24,7 @@ impl StorageProver {
         contract_addr: Address,
         word: FixedBytes<32>,
         points_addr: Address,
-    ) -> R<()> {
+    ) -> R<u64> {
         // Check the contract's performance, by taking the random word, then
         // supplying it as an argument to the contract given by having the gas
         // amount estimated beforehand, then measuring the impact on the gas
@@ -78,13 +78,13 @@ impl StorageProver {
         match last_top_scorer {
             Some((last_score, _)) => {
                 if last_score >= gas_consumed {
-                    return Ok(());
+                    return Ok(gas_consumed);
                 }
                 let one_percent_of_prev = last_score / 100;
                 let gas_delta = last_score - gas_consumed;
                 // If the delta is more than 1%...
                 if one_percent_of_prev <= gas_delta {
-                    return Ok(());
+                    return Ok(gas_consumed);
                 }
             }
             None => (),
@@ -106,7 +106,7 @@ impl StorageProver {
             .set(U64::from(self.vm().block_timestamp()));
         self.top_scorers
             .push(pack_result_word(gas_consumed, points_addr));
-        Ok(())
+        Ok(gas_consumed)
     }
 }
 
