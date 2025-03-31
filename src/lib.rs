@@ -6,6 +6,8 @@ pub mod errors;
 pub mod events;
 pub mod prover;
 
+pub mod immutables;
+
 pub mod storage_prover;
 
 mod contract_prover;

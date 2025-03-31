@@ -15,28 +15,28 @@ pub struct StorageProver {
     /// Admin that has the right to provide contract invocations to this function.
     pub admin: StorageAddress,
 
-    /// Results that were supplied to this function, aka the median of the registrations that
-    /// were provided to this contract. The word contains an address, and the gas performance of
-    /// the function was called, in the form of the address, and the gas as a
-    /// u160 word, needing to be decoded below.
-    pub results: StorageVec<StorageU256>,
+    /// The top scorer of this function, in the form of the address, and the
+    /// gas consumed. Appended to, but occassionally scratched from the
+    /// record by the administrator if someone misleads the address of their
+    /// repo when they submit.
+    pub top_scorers: StorageVec<StorageU256>,
 
     /// Amounts of seconds of tenancy the leading solution has had, which is converted into
     /// a token that's minted and sent their way on change.
-    pub tenancy_secs: u64,
+    pub tenancy_secs: StorageU64,
 }
 
-pub fn unpack_result_word(x: U256) -> (U96, Address) {
+pub fn unpack_result_word(x: U256) -> (u64, Address) {
     let b: [u8; 32] = x.to_be_bytes();
-    let addr = Address::from_slice(&b[12..32]);
-    let amt = U96::from_be_bytes::<12>(b[0..12].try_into().unwrap());
+    let addr = Address::from_slice(&b[12..]);
+    let amt = u64::from_be_bytes(b[0..8].try_into().unwrap());
     (amt, addr)
 }
 
-pub fn pack_result_word(amt: U256, addr: Address) -> U256 {
+pub fn pack_result_word(amt: u64, addr: Address) -> U256 {
     let mut b = [0u8; 32];
-    b[0..12].copy_from_slice(&amt.to_be_bytes::<32>()[20..]);
-    b[12..32].copy_from_slice(addr.as_slice());
+    b[0..8].copy_from_slice(&amt.to_be_bytes());
+    b[12..].copy_from_slice(&addr.into_array());
     U256::from_be_bytes(b)
 }
 
@@ -47,16 +47,12 @@ mod test {
 
     proptest! {
         #[test]
-        fn pack_unpack_queue_item(amt in any::<[u8; 12]>(), addr in any::<[u8; 20]>()) {
-            let mut amt_u = [0u8; 32];
-            amt_u[20..].copy_from_slice(&amt);
-            let amt_u = U256::from_be_bytes(amt_u);
-            let amt = U96::from_be_bytes(amt);
+        fn test_unpack_results(amt in any::<u64>(), addr in any::<[u8; 20]>()) {
             let addr = Address::from(addr);
             assert_eq!(
                 (amt, addr),
-                unpack_result_word(pack_result_word(amt_u, addr)
-            ));
+                unpack_result_word(pack_result_word(amt, addr))
+            );
         }
     }
 }
