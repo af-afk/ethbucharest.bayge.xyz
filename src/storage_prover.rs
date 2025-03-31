@@ -4,15 +4,13 @@ use stylus_sdk::{
 };
 
 #[allow(unused)]
-use stylus_sdk::prelude::*;
+use {
+    alloc::{vec, vec::Vec},
+    stylus_sdk::prelude::*,
+};
 
-use alloc::{vec, vec::Vec};
-
-#[cfg_attr(
-    any(feature = "contract-prover", feature = "factory-prover"),
-    storage,
-    entrypoint
-)]
+#[storage]
+#[entrypoint]
 pub struct StorageProver {
     /// Admin that has the right to provide contract invocations to this function.
     pub admin: StorageAddress,
@@ -22,6 +20,10 @@ pub struct StorageProver {
     /// the function was called, in the form of the address, and the gas as a
     /// u160 word, needing to be decoded below.
     pub results: StorageVec<StorageU256>,
+
+    /// Amounts of seconds of tenancy the leading solution has had, which is converted into
+    /// a token that's minted and sent their way on change.
+    pub tenancy_secs: u64,
 }
 
 pub fn unpack_result_word(x: U256) -> (U96, Address) {
@@ -53,7 +55,7 @@ mod test {
             let addr = Address::from(addr);
             assert_eq!(
                 (amt, addr),
-                unpack_queue_item(pack_queue_item(amt_u, addr)
+                unpack_result_word(pack_result_word(amt_u, addr)
             ));
         }
     }
