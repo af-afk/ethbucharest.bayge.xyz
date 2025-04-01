@@ -1,16 +1,18 @@
-use stylus_sdk::{
-    alloy_primitives::{aliases::*, *},
-    storage::*,
-};
-
-#[allow(unused)]
+#[cfg(any(feature = "contract-prover", feature = "factory-prover"))]
 use {
     alloc::{vec, vec::Vec},
     stylus_sdk::prelude::*,
+    stylus_sdk::{
+        alloy_primitives::{aliases::*, *},
+        storage::*,
+    },
 };
 
-#[storage]
-#[entrypoint]
+#[cfg_attr(
+    any(feature = "contract-prover", feature = "factory-prover"),
+    storage,
+    entrypoint
+)]
 pub struct StorageProver {
     /// Admin that has the right to provide contract invocations to this function.
     pub admin: StorageAddress,

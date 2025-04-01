@@ -1,15 +1,19 @@
-use stylus_sdk::{
-    alloy_primitives::*,
-    alloy_sol_types::{sol, SolCall},
-    prelude::*,
-    stylus_core::{calls::context::Call, log},
+#[cfg(feature = "contract-prover")]
+use {
+    crate::{events, prover},
+    alloc::vec::Vec,
+    stylus_sdk::{
+        alloy_sol_types::{sol, SolCall},
+        prelude::*,
+        stylus_core::{calls::context::Call, log},
+    },
 };
 
-use crate::{errors::*, events, prover, storage_prover::*};
+use crate::{errors::*, storage_prover::*};
 
-#[allow(unused)]
-use alloc::vec::Vec;
+use stylus_sdk::alloy_primitives::*;
 
+#[cfg(feature = "contract-prover")]
 sol!("./src/ICallback.sol");
 
 #[cfg(feature = "contract-prover")]
