@@ -1,11 +1,10 @@
 #[cfg(any(feature = "contract-prover", feature = "factory-prover"))]
-use {
-    alloc::{vec, vec::Vec},
-    stylus_sdk::prelude::*,
-    stylus_sdk::{
-        alloy_primitives::{aliases::*, *},
-        storage::*,
-    },
+use alloc::{vec, vec::Vec};
+
+use stylus_sdk::{
+    alloy_primitives::{aliases::*, *},
+    prelude::*,
+    storage::*,
 };
 
 #[cfg_attr(
