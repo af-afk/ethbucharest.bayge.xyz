@@ -5,7 +5,7 @@
 
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 
-use stylus_sdk::crypto::keccak;
+use siphasher::sip::SipHasher13;
 
 use crate::immutables::*;
 
@@ -177,13 +177,11 @@ pub fn default_solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
 }
 
 fn hash(x: &[u8], i: u32) -> u64 {
-    // In our implementation here, despite having access to a full EVM word,
-    // we choose instead to use enough to be a 64 bit word. This means
-    // unfortunately lopping off three quarters of it.
-    let mut b = (0..x.len() + 4).map(|_| 0u8).collect::<Vec<_>>();
-    b[..x.len()].copy_from_slice(x);
-    b[x.len()..].copy_from_slice(&i.to_be_bytes());
-    u64::from_be_bytes(keccak(&b).0[..8].try_into().unwrap())
+    // The siphasher uses a u32 for the key, but we instead lift the count,
+    // which is also a 32 bit number to keep things simple and small.
+    let mut w = [0u8; 16];
+    w[12..].copy_from_slice(&i.to_be_bytes());
+    SipHasher13::new_with_key(&w).hash(x)
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]

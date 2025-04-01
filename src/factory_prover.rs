@@ -1,15 +1,9 @@
-use stylus_sdk::{
-    alloy_primitives::*,
-    alloy_sol_types::{sol, SolCall},
+#[allow(unused)]
+use {
+    crate::{errors::*, events, proxy, storage_prover::*},
+    alloc::vec::Vec,
+    stylus_sdk::{alloy_primitives::*, prelude::*},
 };
-
-#[allow(unused)]
-use stylus_sdk::prelude::*;
-
-#[allow(unused)]
-use alloc::vec::Vec;
-
-use crate::{errors::*, events, proxy, storage_prover::*};
 
 #[cfg(feature = "factory-prover")]
 #[public]

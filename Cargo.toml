@@ -11,6 +11,7 @@ keywords = ["arbitrum", "ethereum", "stylus", "alloy"]
 alloy-sol-types = { version = "=0.8.20", default-features = false }
 array-concat = "0.5.5"
 mini-alloc = "0.8.3"
+siphasher = { version = "1.0.1", default-features = false }
 stylus-sdk = "0.8.3"
 tiny-keccak = "2.0.2"
 
