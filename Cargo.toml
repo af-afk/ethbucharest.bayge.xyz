@@ -6,6 +6,7 @@ license = "MIT"
 homepage = "https://ethbucharest.superposition.so"
 repository = "https://github.com/af-afk/ethbucharest.bayge.xyz"
 keywords = ["arbitrum", "ethereum", "stylus", "alloy"]
+description = "libbucharesthashing contains the proving Arbitrum Stylus smart contract, and the prover function."
 
 [dependencies]
 alloy-sol-types = { version = "=0.8.20", default-features = false }
