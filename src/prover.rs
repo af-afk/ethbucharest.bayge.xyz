@@ -176,7 +176,7 @@ pub fn default_solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
     solve(BOARD_SIZE, CHECKS_NEEDED, MAX_TRIES, starting_hash, start)
 }
 
-fn hash(x: &[u8], i: u32) -> u64 {
+pub fn hash(x: &[u8], i: u32) -> u64 {
     // The siphasher uses a u32 for the key, but we instead lift the count,
     // which is also a 32 bit number to keep things simple and small.
     let mut w = [0u8; 16];
