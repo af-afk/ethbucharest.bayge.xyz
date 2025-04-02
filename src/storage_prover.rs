@@ -27,6 +27,15 @@ pub struct StorageProver {
 
     /// When the current winner begun their tenancy of the top position.
     pub tenancy_start_ts: StorageU64,
+
+    /// Has the competition concluded?
+    pub concluded: StorageBool,
+
+    /// When this contract was deployed.
+    pub started: StorageU64,
+
+    /// When this competition concludes!
+    pub deadline: StorageU64,
 }
 
 pub fn unpack_result_word(x: U256) -> (u64, Address) {

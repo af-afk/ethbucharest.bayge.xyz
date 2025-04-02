@@ -1,24 +1,40 @@
 #[cfg(feature = "contract-prover")]
 use {
-    crate::{events, prover},
-    alloc::vec::Vec,
-    stylus_sdk::{
-        alloy_sol_types::{sol, SolCall},
-        prelude::*,
-        stylus_core::{calls::context::Call, log},
-    },
+    crate::prover,
+    alloc::{string::String, vec::Vec},
 };
 
-use crate::{errors::*, storage_prover::*};
+use crate::{errors::*, events, immutables::*, storage_prover::*};
 
-use stylus_sdk::alloy_primitives::*;
+use stylus_sdk::{
+    alloy_primitives::*,
+    alloy_sol_types::{sol, SolCall},
+    prelude::*,
+    stylus_core::{calls::context::Call, log},
+};
 
 #[cfg(feature = "contract-prover")]
 sol!("./src/ICallback.sol");
 
+sol! {
+    function mint(address recipient, uint256 amount);
+}
+
 #[cfg(feature = "contract-prover")]
 #[public]
 impl StorageProver {
+    pub fn register(&self, contract_addr: Address, points_addr: Address, info: String) -> R<()> {
+        log(
+            self.vm(),
+            events::Registered {
+                addr: contract_addr,
+                recipient: points_addr,
+                info,
+            },
+        );
+        Ok(())
+    }
+
     pub fn prove(&self, hash: FixedBytes<32>, from: u32) -> R<(u32, u32)> {
         Ok(prover::default_solve(hash.as_slice(), from).unwrap())
     }
@@ -29,6 +45,10 @@ impl StorageProver {
         word: FixedBytes<32>,
         points_addr: Address,
     ) -> R<u64> {
+        // To prevent word golfing abuse, this function is only usable by the admin.
+        if self.vm().msg_sender() != self.admin.get() {
+            return Err(Err::AdminOnly);
+        }
         // Check the contract's performance, by taking the random word, then
         // supplying it as an argument to the contract given by having the gas
         // amount estimated beforehand, then measuring the impact on the gas
@@ -75,11 +95,7 @@ impl StorageProver {
         // Check if the gas that was consumed is more than 1% of the top scorer.
         // If they are, then we update the top result, and we also log that we
         // did so.
-        let last_top_scorer = self
-            .top_scorers
-            .get(self.top_scorers.len().checked_sub(1).unwrap_or(0))
-            .map(unpack_result_word);
-        match last_top_scorer {
+        match self.get_last_top_winner() {
             Some((last_score, _)) => {
                 if last_score >= gas_consumed {
                     return Ok(gas_consumed);
@@ -102,28 +118,125 @@ impl StorageProver {
                 gas: gas_consumed,
             },
         );
-        if let Some((_, addr)) = last_top_scorer {
-            let last_tenant_ts = u64::from_le_bytes(self.tenancy_start_ts.get().to_le_bytes());
-            self.payout(last_tenant_ts, self.vm().block_timestamp(), addr)?;
-        }
+        self.maybe_payout_cur_leader()?;
         self.tenancy_start_ts
             .set(U64::from(self.vm().block_timestamp()));
         self.top_scorers
             .push(pack_result_word(gas_consumed, points_addr));
         Ok(gas_consumed)
     }
+
+    /// Cancel the latest submission to the contract, assuming we're not
+    /// having a million submissions at once, and only taking place if the
+    /// address of the latest sender is the victim specified. This might be
+    /// need to be triggered if there's abuse taking place (perhaps a user
+    /// didn't share the repository).
+    pub fn cancel(&mut self, victim: Address) -> R<()> {
+        if self.vm().msg_sender() != self.admin.get() {
+            return Err(Err::AdminOnly);
+        }
+        let (_, addr) = unpack_result_word(self.top_scorers.pop().ok_or(Err::CancelInappropriate)?);
+        if addr != self.admin.get() {
+            return Err(Err::AdminOnly);
+        }
+        log(self.vm(), events::CancelTookPlace { victim });
+        Ok(())
+    }
+
+    /// Conclude the competition, sending the winner their token.
+    pub fn conclude(&mut self) -> R<()> {
+        if self.vm().msg_sender() != self.admin.get() {
+            return Err(Err::AdminOnly);
+        }
+        if self.concluded.get() {
+            return Err(Err::AlreadyConcluded);
+        }
+        self.maybe_payout_cur_leader()?;
+        log(self.vm(), events::Concluded {});
+        self.concluded.set(true);
+        Ok(())
+    }
+
+    pub fn token_amount_owed(&self) -> R<U256> {
+        if let Some(_) = self.get_last_top_winner() {
+            Ok(self.tokens_owed_cur_leader())
+        } else {
+            Ok(U256::ZERO)
+        }
+    }
+
+    pub fn current_leader(&self) -> R<Address> {
+        Ok(if let Some((_, addr)) = self.get_last_top_winner() {
+            addr
+        } else {
+            Address::ZERO
+        })
+    }
 }
 
 impl StorageProver {
-    // Payout the user some of the winning token that they should've earned
-    // per second by multiplying it by the current rate of the payout on the
-    // curve.
-    pub fn payout(&mut self, deposited_when: u64, cur_time: u64, recipient: Address) -> R<U256> {
+    pub fn get_last_top_winner(&self) -> Option<(u64, Address)> {
+        self.top_scorers
+            .get(self.top_scorers.len().checked_sub(1).unwrap_or(0))
+            .map(unpack_result_word)
+    }
+
+    pub fn mint(&self, recipient: Address, amt_owed: U256) -> R<()> {
+        let _ = self
+            .vm()
+            .call(
+                &Call::new(),
+                self.token_addr.get(),
+                &mintCall {
+                    recipient,
+                    amount: amt_owed,
+                }
+                .abi_encode(),
+            )
+            .map_err(|x| match x {
+                calls::errors::Error::Revert(_) => Err::MintFailed,
+                _ => unimplemented!(),
+            })?;
+        Ok(())
+    }
+
+    pub fn tokens_owed(&self, deposited_when: u64, cur_time: u64) -> U256 {
         // Calculate the amount per second they've earned using the curve
         // function, then multiply it by the seconds they've been in the lead.
-
         // Now, mint the tokens to send to the recipient.
+        let ts_comp_start = u64::from_be_bytes(self.started.get().to_be_bytes());
+        (deposited_when - ts_comp_start..=cur_time - ts_comp_start)
+            .fold(U256::ZERO, |acc, x| acc + U256::from(x) + BASE_REVENUE)
+    }
 
-        Ok(U256::ZERO)
+    pub fn tokens_owed_cur_leader(&self) -> U256 {
+        let last_tenant_ts = u64::from_le_bytes(self.tenancy_start_ts.get().to_le_bytes());
+        // Make sure we don't overflow what's left of the deadline and have some
+        // weird funny business with the final amount distribution.
+        let max_time = {
+            let ts = self.vm().block_timestamp();
+            let d = u64::from_be_bytes(self.deadline.get().to_be_bytes());
+            if ts > d {
+                d
+            } else {
+                ts
+            }
+        };
+        self.tokens_owed(last_tenant_ts, max_time)
+    }
+
+    pub fn maybe_payout_cur_leader(&mut self) -> R<()> {
+        if let Some((_, addr)) = self.get_last_top_winner() {
+            let tokens_owed = self.tokens_owed_cur_leader();
+            self.mint(addr, tokens_owed)?;
+            log(
+                self.vm(),
+                events::WinnerPaidOut {
+                    leader: addr,
+                    amount: tokens_owed,
+                },
+            );
+        }
+        Ok(())
     }
 }

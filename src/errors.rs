@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 #[repr(u8)]
 #[derive(Debug, Clone)]
 pub enum Err {
+    // Only the admin can call this function!
     AdminOnly,
 
     /// The caller to the prove function reverted!
@@ -21,6 +22,15 @@ pub enum Err {
 
     /// The deployment of a proxy failed.
     DeployFailed,
+
+    /// Leader changed in a way that prevents cancellation.
+    CancelInappropriate,
+
+    /// This competition was already concluded.
+    AlreadyConcluded,
+
+    /// Mint call failed.
+    MintFailed,
 }
 
 impl From<Err> for u8 {

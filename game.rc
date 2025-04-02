@@ -1,0 +1,83 @@
+#!/usr/bin/env rc
+
+# game: take the last , and check if we've seen any of
+# them by the transaction hash. If we haven't, we need to get the
+# registered contract address, and we need to simulate 100 calls to the
+# contract, and take the median gas consumed word, and call the register
+# function for that input. This function is susceptible to abuse in the
+# form of someone resubmitting their contract several times, hoping for
+# another win, but this is preferred over someone not being able to
+# upgrade their contract to save costs (if they're so inclined). Someone
+# could also feasibly flood this script.
+
+url=https://testnet-rpc.superposition.so
+game_addr=0x48abef3b55e0c4051c3fa09c20fb611c87f48301
+register_topic=0x74cae52d13d0a6674c3c1893c783092016dfec46784236cb118fcf9c0dd071cf
+key=`{QEP superposition}
+
+test_count=1000
+
+TMPDIR=`{pwd}/game-tmp
+
+cd $TMPDIR
+
+fn log {
+	echo $* >[1=2]
+}
+
+fn spn_logs {
+	cast logs --rpc-url $url --json $*
+}
+
+fn spn_estimate {
+	cast estimate --rpc-url $url --json $*
+}
+
+fn find_latest_registrations {
+	spn_logs \
+		--address $game_addr \
+		$register_topic \
+			| jq -r '.[] | [.transactionHash, .topics[1:], .data] | flatten | @csv'
+}
+
+fn lookup_prove_performance {
+	contract=$1
+	word=0x`{dd if=/dev/urandom count=3 bs=1 status=none | xxd -p | keccak}
+	echo $word,`{spn_estimate $contract 'prove(bytes32,uint32)' $word 0}
+}
+
+fn median {
+	sort -t, -k2n | awk -F, '{
+		a[NR]=$0
+	} END {
+		mid = int((NR + 1)/2)
+		split(a[mid], fields, ",")
+		print fields[1]
+	}'
+}
+
+fn spn_send {
+	cast send --private-key $key --rpc-url $url --json $*
+}
+
+fn lookup_median_then_send {
+	contract=$1
+	points_addr=$2
+	word=`{seq $test_count | parallel -j100 lookup_prove_performance $contract | median}
+	resp=`{spn_send $game_addr 'check(address,bytes32,address)' $contract $word $points_addr}
+	tx_hash=`{echo $resp | jq -r '.transactionHash'}
+	log Sent on-chain the check function with tx $tx_hash, to $contract, for the points address $points_addr
+}
+
+for(r in `{find_latest_registrations}) {
+	tx_hash=`{echo $r | cut -f1 -d, | jq -r}
+	contract_addr=0x`{echo $r | cut -f2 -d, | jq -r '.[26:]'}
+	points_addr=0x`{echo $r | cut -f3 -d, | jq -r '.[26:]'}
+	info=`{cast --abi-decode 'data()(string)' `{echo $r | cut -f4 -d, | jq -r}}
+	log Tx $tx_hash seen, $contract_addr, pointing to $points_addr, is $info
+	tx_file=$tx_hash.seen
+	if(! 9 test -f $tx_file) {
+		lookup_median_then_send $contract_addr $points_addr
+		touch $tx_file
+	}
+}
