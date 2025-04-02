@@ -9,8 +9,8 @@
 # win, but this is preferred over someone not being able to upgrade
 # their contract to save costs (if they're so inclined).
 
-url=https://testnet-rpc.superposition.so
-game_addr=0x48abef3b55e0c4051c3fa09c20fb611c87f48301
+url=$SPN_SUPERPOSITION_URL
+game_addr=0x178c5804dd29882b0d8f3decc6d04a185569d873
 register_topic=0x74cae52d13d0a6674c3c1893c783092016dfec46784236cb118fcf9c0dd071cf
 key=`{QEP superposition}
 
@@ -62,6 +62,7 @@ fn spn_send {
 fn lookup_median_then_send {
 	contract=$1
 	points_addr=$2
+	tx=$3
 	word=`{seq $test_count | parallel -j100 lookup_prove_performance $contract | median}
 	resp=`{spn_send $game_addr 'check(address,bytes32,address)' $contract $word $points_addr}
 	tx_hash=`{echo $resp | jq -r '.transactionHash'}
@@ -76,7 +77,7 @@ for(r in `{find_latest_registrations}) {
 	log Tx $tx_hash seen, $contract_addr, pointing to $points_addr, is $info
 	tx_file=$tx_hash.seen
 	if(! 9 test -f $tx_file) {
-		lookup_median_then_send $contract_addr $points_addr
 		touch $tx_file
+		lookup_median_then_send $contract_addr $points_addr
 	}
 }

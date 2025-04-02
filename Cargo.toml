@@ -23,6 +23,7 @@ features = ["native-keccak"]
 
 [dev-dependencies]
 const-hex = "1.14.0"
+plotters = "0.3.7"
 proptest = "1.6.0"
 stylus-sdk = { version = "0.8.3", features = ["stylus-test"] }
 

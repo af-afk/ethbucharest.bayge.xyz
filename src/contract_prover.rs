@@ -92,37 +92,7 @@ impl StorageProver {
                 word,
             },
         );
-        // Check if the gas that was consumed is more than 1% of the top scorer.
-        // If they are, then we update the top result, and we also log that we
-        // did so.
-        match self.get_last_top_winner() {
-            Some((last_score, _)) => {
-                if last_score >= gas_consumed {
-                    return Ok(gas_consumed);
-                }
-                let one_percent_of_prev = last_score / 100;
-                let gas_delta = last_score - gas_consumed;
-                // If the delta is more than 1%...
-                if one_percent_of_prev <= gas_delta {
-                    return Ok(gas_consumed);
-                }
-            }
-            None => (),
-        };
-        // Wow! We found a winner! We need to emit, and update storage.
-        log(
-            self.vm(),
-            events::NewWinner {
-                addr: contract_addr,
-                points: points_addr,
-                gas: gas_consumed,
-            },
-        );
-        self.maybe_payout_cur_leader()?;
-        self.tenancy_start_ts
-            .set(U64::from(self.vm().block_timestamp()));
-        self.top_scorers
-            .push(pack_result_word(gas_consumed, points_addr));
+        self.internal_update_leader(contract_addr, points_addr, gas_consumed)?;
         Ok(gas_consumed)
     }
 
@@ -151,37 +121,79 @@ impl StorageProver {
         if self.concluded.get() {
             return Err(Err::AlreadyConcluded);
         }
-        self.maybe_payout_cur_leader()?;
+        self.internal_maybe_payout_cur_leader()?;
         log(self.vm(), events::Concluded {});
         self.concluded.set(true);
         Ok(())
     }
 
     pub fn token_amount_owed(&self) -> R<U256> {
-        if let Some(_) = self.get_last_top_winner() {
-            Ok(self.tokens_owed_cur_leader())
+        if let Some(_) = self.internal_get_last_top_winner() {
+            Ok(self.internal_tokens_owed_cur_leader())
         } else {
             Ok(U256::ZERO)
         }
     }
 
-    pub fn current_leader(&self) -> R<Address> {
-        Ok(if let Some((_, addr)) = self.get_last_top_winner() {
-            addr
-        } else {
-            Address::ZERO
-        })
+    pub fn current_leader_solution(&self) -> R<(u64, Address)> {
+        Ok(
+            if let Some((points, addr)) = self.internal_get_last_top_winner() {
+                (points, addr)
+            } else {
+                (0, Address::ZERO)
+            },
+        )
     }
 }
 
 impl StorageProver {
-    pub fn get_last_top_winner(&self) -> Option<(u64, Address)> {
+    pub fn internal_get_last_top_winner(&self) -> Option<(u64, Address)> {
         self.top_scorers
             .get(self.top_scorers.len().checked_sub(1).unwrap_or(0))
             .map(unpack_result_word)
     }
 
-    pub fn mint(&self, recipient: Address, amt_owed: U256) -> R<()> {
+    pub fn internal_update_leader(
+        &mut self,
+        contract_addr: Address,
+        points_addr: Address,
+        gas_consumed: u64,
+    ) -> R<()> {
+        // Check if the gas that was consumed is more than 1% of the top scorer.
+        // If they are, then we update the top result, and we also log that we
+        // did so.
+        match self.internal_get_last_top_winner() {
+            Some((last_score, _)) => {
+                if last_score >= gas_consumed {
+                    return Ok(());
+                }
+                let one_percent_of_prev = last_score / 100;
+                let gas_delta = last_score - gas_consumed;
+                // If the delta is more than 1%...
+                if one_percent_of_prev <= gas_delta {
+                    return Ok(());
+                }
+            }
+            None => (),
+        };
+        // Wow! We found a winner! We need to emit, and update storage.
+        log(
+            self.vm(),
+            events::NewWinner {
+                addr: contract_addr,
+                points: points_addr,
+                gas: gas_consumed,
+            },
+        );
+        self.internal_maybe_payout_cur_leader()?;
+        self.tenancy_start_ts
+            .set(U64::from(self.vm().block_timestamp()));
+        self.top_scorers
+            .push(pack_result_word(gas_consumed, points_addr));
+        Ok(())
+    }
+
+    pub fn internal_mint(&self, recipient: Address, amt_owed: U256) -> R<()> {
         let _ = self
             .vm()
             .call(
@@ -200,16 +212,16 @@ impl StorageProver {
         Ok(())
     }
 
-    pub fn tokens_owed(&self, deposited_when: u64, cur_time: u64) -> U256 {
-        // Calculate the amount per second they've earned using the curve
-        // function, then multiply it by the seconds they've been in the lead.
-        // Now, mint the tokens to send to the recipient.
-        let ts_comp_start = u64::from_be_bytes(self.started.get().to_be_bytes());
-        (deposited_when - ts_comp_start..=cur_time - ts_comp_start)
-            .fold(U256::ZERO, |acc, x| acc + U256::from(x) + BASE_REVENUE)
+    pub fn internal_challenge_duration(&self) -> u64 {
+        let x = self.deadline.get() - self.started.get();
+        u64::from_be_bytes(x.to_be_bytes())
     }
 
-    pub fn tokens_owed_cur_leader(&self) -> U256 {
+    pub fn internal_tokens_owed(&self, deposited_when: u64, cur_time: u64) -> U256 {
+        U256::from(cur_time - deposited_when) * BASE_REVENUE
+    }
+
+    pub fn internal_tokens_owed_cur_leader(&self) -> U256 {
         let last_tenant_ts = u64::from_le_bytes(self.tenancy_start_ts.get().to_le_bytes());
         // Make sure we don't overflow what's left of the deadline and have some
         // weird funny business with the final amount distribution.
@@ -222,13 +234,13 @@ impl StorageProver {
                 ts
             }
         };
-        self.tokens_owed(last_tenant_ts, max_time)
+        self.internal_tokens_owed(last_tenant_ts, max_time)
     }
 
-    pub fn maybe_payout_cur_leader(&mut self) -> R<()> {
-        if let Some((_, addr)) = self.get_last_top_winner() {
-            let tokens_owed = self.tokens_owed_cur_leader();
-            self.mint(addr, tokens_owed)?;
+    pub fn internal_maybe_payout_cur_leader(&mut self) -> R<()> {
+        if let Some((_, addr)) = self.internal_get_last_top_winner() {
+            let tokens_owed = self.internal_tokens_owed_cur_leader();
+            self.internal_mint(addr, tokens_owed)?;
             log(
                 self.vm(),
                 events::WinnerPaidOut {

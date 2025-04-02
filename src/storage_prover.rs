@@ -68,3 +68,11 @@ mod test {
         }
     }
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Default for StorageProver {
+    fn default() -> Self {
+        use stylus_sdk::testing::vm::TestVM;
+        StorageProver::from(&TestVM::new())
+    }
+}
