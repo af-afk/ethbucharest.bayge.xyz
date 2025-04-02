@@ -1,0 +1,33 @@
+
+# Intro to Stylus
+
+@bayge
+https://superposition.so
+Wed 02 Apr 2025
+
+## What is Stylus?
+
+- WASM frontend to the EVM
+
+## Example contract
+
+	#[entrypoint]
+	#[storage]
+	struct Contract {
+	    name: StorageString,
+	}
+
+	#[public]
+	impl Contract {
+	    pub fn hello_world(&self) -> String {
+	        self.name.get()
+	    }
+	}
+
+## Why?
+
+- Way cheaper to use
+
+- Presumably safer since the technology isn't restricted to web3
+
+Safer in the sense that we also have a way better quality of testing frameworks to access to provide us with safety.

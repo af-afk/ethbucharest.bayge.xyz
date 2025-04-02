@@ -1,46 +1,87 @@
 
-# Stylus Gas Redux
+# Stylus Gas Redux Explained
 
+Wed 02 Apr 2025
 @bayge
+https://superposition.so
 
 ## Introduction to Bucharest Hashing
 
-Bucharest Hashing is a Proof of Work problem where solvers word to use a keyed hash
-function to find the first instance of a king being checked on a chess board.
+- Memory latency proof of work algorithm
 
-Pieces have their placement derived from a nonce and a hash function, and to the King,
-every piece is a opponent. Many Kings can be placed at once, but only the last King can
-be considered for check.
+- Similar to Cuckoo Hashing
+
+- Find the first instance of a king being checked
+
+.image chess.png 400 0
+
+: Bucharest Hashing is a Proof of Work problem where solvers word to use a keyed hash
+: function to find the first instance of a king being checked on a chess board.
+
+: Pieces have their placement derived from a nonce and a hash function, and to the King,
+: every piece is a opponent. Many Kings can be placed at once, but only the last King can
+: be considered for check.
+
+## Recapping Proof of Work
+
+: Hashcash is the most well known algorithm for proof of work, submitters
+: try to come up with a random nonce combined with the block header hash
+: for the block they built. The problem with Hashcash is the parallelisation
+: opportunities incentivising better hardware for the problem.
+
+: Memory latency proof of work algorithms are bound by the transport of
+: information, and that's a field that isn't getting better performant,
+: so it's possible for commodity hardware to perform next to a specialised
+: rig. They work sequentially so it's not possible for mining operations
+: to spin up and specialise in the task.
+
+Sha256/hashcash:
+
+- 00000000000000000000752cceee721d825d9219d0e40d11a7abaed86dcd28fe
+
+Cuckoo Cycle:
+
+.image bipartite.webp 200 0
 
 ## How this game is played
 
-This game is played on a curve. The most gas efficient solution is entitled to a token
-created per second, so long as they remain the optimal solution. Solutions
-can only be submitted if a Github repository is linked with the source code. The source
-code must be public. Winners are chosen based on their accumulated points.
+- Find the first instance of check for the keyed function
 
-When a solution is submitted, the submitter must identify which category they belong to.
-The teams and projects will be colour coded by their category. When users register to the
-Superposition faucet, they must explain their preferred category.
+- Most performant solution is submitted on-chain
 
-```mermaid
-xychart-beta
-  title "Submission revenue per second"
-  x-axis ["Start of contest", "End of contest"]
-  y-axis "Revenue earned" 0 --> 100
-  line [20, 80]
-```
+- The leading solution receives points per second
 
-This game rewards early ingenuity. But it opens solutions up to vulnerability, with other
-projects copying elements of their solution.
+- Leaderboard will display the current leaders
 
-## Submitting solutions
+.image lifecycle.png 450 0
 
-Submitting solutions is as simple as calling a verify function. This is tracked by a
-script which will simulate your contract, and pick the median solution in terms of
-performance. If they outperform the previously tracked solution, then they're tracked as
-in the lead, and entitled to rewards until someone submits a better solution! The moment a
-new leader is in place, a Transfer event is emitted to update token balances.
+: This game is played on a curve. The most gas efficient solution is entitled to a token
+: created per second, so long as they remain the optimal solution. Solutions
+: can only be submitted if a Github repository is linked with the source code. The source
+: code must be public. Winners are chosen based on their accumulated points.
+
+## Why play this game?
+
+- This is impossible to implement with normal EVM tooling
+
+- Because performance in memory isn't getting better, you could approximate a VDF over this
+
+- But unlike Cuckoo Cycles, optimisations for the board are possible
+
+: You can allocate large amounts of memory easily with Stylus and to do
+: cheap computation with crates brought in elsewhere. This is an example
+: of a problem that would be impossible to solve with Solidity.
+
+## How this game is played (the curve)
+
+.image curve.webp 400 0
+
+: Submitting solutions is as simple as calling a verify function. This
+: is tracked by a script which will simulate your contract, and pick the
+: median solution in terms of performance. If they outperform the previously
+: tracked solution, then they're tracked as in the lead, and entitled to
+: rewards until someone submits a better solution! The moment a new leader
+: is in place, a Transfer event is emitted to update token balances.
 
 ## How can I improve my solution?
 
@@ -60,7 +101,17 @@ Some ideas:
 
 2. Use the Wizard on Stylus to get started quickly!
 
-QR code here
-
 ## Prizes
 
+1. $5,400
+
+: Distributed according to the share of the points that you have.
+
+2. Superposition keyboards up for grabs
+
+.image qr-code.svg 400 0
+
+: Win a Superposition keyboard by being first place in either Arbitrum
+: competition track, or by deploying a contract to Superposition using
+: the faucet that we're going to be providing. The link will be at the
+: address above to get testnet SPN.
