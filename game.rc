@@ -1,14 +1,13 @@
 #!/usr/bin/env rc
 
-# game: take the last , and check if we've seen any of
-# them by the transaction hash. If we haven't, we need to get the
-# registered contract address, and we need to simulate 100 calls to the
-# contract, and take the median gas consumed word, and call the register
-# function for that input. This function is susceptible to abuse in the
-# form of someone resubmitting their contract several times, hoping for
-# another win, but this is preferred over someone not being able to
-# upgrade their contract to save costs (if they're so inclined). Someone
-# could also feasibly flood this script.
+# game: take the last logs, and check if we've seen any of them by the
+# transaction hash. If we haven't, we need to get the registered
+# contract address, and we need to simulate 1000 calls to the contract,
+# and take the median gas consumed word, and call the register function
+# for that input. This function is susceptible to abuse in the form of
+# someone resubmitting their contract several times, hoping for another
+# win, but this is preferred over someone not being able to upgrade
+# their contract to save costs (if they're so inclined).
 
 url=https://testnet-rpc.superposition.so
 game_addr=0x48abef3b55e0c4051c3fa09c20fb611c87f48301
