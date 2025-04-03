@@ -189,13 +189,13 @@ impl StorageProver {
         // did so.
         match self.internal_get_last_top_winner() {
             Some((last_score, _)) => {
-                if last_score >= gas_consumed {
+                if last_score <= gas_consumed {
                     return Ok(());
                 }
                 let one_percent_of_prev = last_score / 100;
                 let gas_delta = last_score - gas_consumed;
                 // If the delta is more than 1%...
-                if one_percent_of_prev <= gas_delta {
+                if one_percent_of_prev >= gas_delta {
                     return Ok(());
                 }
             }
