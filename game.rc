@@ -10,7 +10,7 @@
 # their contract to save costs (if they're so inclined).
 
 url=$SPN_SUPERPOSITION_URL
-game_addr=0x178c5804dd29882b0d8f3decc6d04a185569d873
+game_addr=0x301fa1a4e2c1d543efc4237209507f168df00eb3
 register_topic=0x74cae52d13d0a6674c3c1893c783092016dfec46784236cb118fcf9c0dd071cf
 key=`{QEP superposition}
 

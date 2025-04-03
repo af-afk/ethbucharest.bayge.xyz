@@ -392,12 +392,17 @@ pub const METAPHOR_PROXY_BYTECODE_2: [u8; 691] = [
     0x14, 0x00, 0x33,
 ];
 
+pub const EMPTY_WORD: [u8; 32] = [0u8; 32];
+
+/// Metaphoric proxy code, leaving one last word empty for the setup calldata.
 pub fn metaphor_proxy_code(
     impl_: Address,
-) -> [u8; (20 * 2) + concat_arrays_size!(METAPHOR_PROXY_BYTECODE_1, METAPHOR_PROXY_BYTECODE_2)] {
+    admin: Address,
+) -> [u8; (20 * 2) + concat_arrays_size!(METAPHOR_PROXY_BYTECODE_1, METAPHOR_PROXY_BYTECODE_2) + 32] {
     concat_arrays!(
         METAPHOR_PROXY_BYTECODE_1,
         impl_.into_array(),
-        METAPHOR_PROXY_BYTECODE_2
+        METAPHOR_PROXY_BYTECODE_2,
+        admin.into_word().0
     )
 }

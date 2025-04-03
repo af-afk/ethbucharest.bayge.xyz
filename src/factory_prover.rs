@@ -8,11 +8,8 @@ use {
 #[cfg(feature = "factory-prover")]
 #[public]
 impl StorageProver {
-    pub fn deploy(&self, contract_impl: Address, admin: Address) -> R<Address> {
-        let mut c = proxy::metaphor_proxy_code(contract_impl).to_vec();
-        let mut admin_addr = [0u8; 32];
-        admin_addr[12..].copy_from_slice(&admin.into_array());
-        c.extend_from_slice(&mut admin_addr);
+    pub fn deploy(&self, contract_impl: Address, admin: Address) -> Result<Address, Vec<u8>> {
+        let c = proxy::metaphor_proxy_code(contract_impl, admin).to_vec();
         let addr = unsafe {
             self.vm()
                 .deploy(&c, U256::ZERO, None)
@@ -24,6 +21,7 @@ impl StorageProver {
 
     /// Callback function that's used to set the storage of the prover contract.
     pub fn setup(&mut self, admin: Address) -> R<()> {
+        assert!(!admin.is_zero());
         self.admin.set(admin);
         let t = unsafe {
             self.vm()

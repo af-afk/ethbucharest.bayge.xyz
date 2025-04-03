@@ -35,6 +35,10 @@ impl StorageProver {
         Ok(())
     }
 
+    pub fn admin(&self) -> Address {
+        self.admin.get()
+    }
+
     pub fn token_addr(&self) -> Address {
         self.token_addr.get()
     }
