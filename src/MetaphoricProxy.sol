@@ -32,7 +32,7 @@ contract MetaphoricProxy {
 
     fallback() external {
         (bool rc, bytes memory rd) =
-            0x9999999999999999999999999999999999999999.delegatecall(msg.data);
+            StorageSlot.getAddressSlot(SLOT_IMPL).value.delegatecall(msg.data);
         if (rd.length > 0 && !rc) {
             assembly {
                 revert(add(rd, 0x20), mload(rd))

@@ -15,10 +15,6 @@ pub mod storage_prover;
 pub mod factory_prover;
 pub mod contract_prover;
 
-#[cfg(feature = "factory-prover")]
-pub use factory_prover::*;
-
-#[cfg(feature = "contract-prover")]
 pub use storage_prover::*;
 
 #[cfg(not(target_arch = "wasm32"))]

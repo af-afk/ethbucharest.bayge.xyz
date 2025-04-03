@@ -35,6 +35,10 @@ impl StorageProver {
         Ok(())
     }
 
+    pub fn token_addr(&self) -> Address {
+        self.token_addr.get()
+    }
+
     pub fn prove(&self, hash: FixedBytes<32>, from: u32) -> R<(u32, u32)> {
         Ok(prover::default_solve(hash.as_slice(), from).unwrap())
     }
@@ -143,6 +147,23 @@ impl StorageProver {
                 (0, Address::ZERO)
             },
         )
+    }
+
+    pub fn upgrade(&mut self, impl_: Address) -> R<()> {
+        if self.vm().msg_sender() != self.admin.get() {
+            return Err(Err::AdminOnly);
+        }
+        // Just in case during this competition... This is the slot impl impl
+        let w = U256::from_limbs([
+            2351945876927687612,
+            14573121138821903785,
+            461557562180745613,
+            3893525298072888097,
+        ]);
+        unsafe {
+            self.vm().storage_cache_bytes32(w, impl_.into_word());
+        }
+        Ok(())
     }
 }
 
