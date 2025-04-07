@@ -114,7 +114,7 @@ impl StorageProver {
             return Err(Err::AdminOnly);
         }
         let (_, addr) = unpack_result_word(self.top_scorers.pop().ok_or(Err::CancelInappropriate)?);
-        if addr != self.admin.get() {
+        if addr != victim {
             return Err(Err::AdminOnly);
         }
         log(self.vm(), events::CancelTookPlace { victim });
